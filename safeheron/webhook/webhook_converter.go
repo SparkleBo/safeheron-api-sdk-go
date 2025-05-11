@@ -39,8 +39,8 @@ func (c *WebhookConverter) Convert(d WebHook) (string, error) {
 		"bizContent": d.BizContent,
 	}
 	// Verify sign
-	verifyRet := utils.VerifySignWithRSA(serializeParams(responseStringMap), d.Sig, c.Config.SafeheronWebHookRsaPublicKey)
-	if !verifyRet {
+	err := utils.VerifySignWithRSA(serializeParams(responseStringMap), d.Sig, c.Config.SafeheronWebHookRsaPublicKey)
+	if err != nil {
 		return "", errors.New("webhook signature verification failed")
 	}
 	// Use your RSA private key to decrypt response's aesKey and aesIv

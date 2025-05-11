@@ -102,8 +102,8 @@ func (c Client) execute(request any, endpoint string) ([]byte, error) {
 	}
 
 	// Verify sign
-	verifyRet := utils.VerifySignWithRSA(serializeParams(responseStringMap), responseStruct.Sig, c.Config.SafeheronRsaPublicKey)
-	if !verifyRet {
+	err = utils.VerifySignWithRSA(serializeParams(responseStringMap), responseStruct.Sig, c.Config.SafeheronRsaPublicKey)
+	if err != nil {
 		return nil, errors.New("response signature verification failed")
 	}
 

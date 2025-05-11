@@ -116,36 +116,35 @@ func EncryptWithOAEP(data []byte, publicKeyPath string) (string, error) {
 	return ciphertext, nil
 }
 
-func VerifySignWithRSA(data string, base64Sign string, rasPublicKeyPath string) bool {
+func VerifySignWithRSA(data string, base64Sign string, rasPublicKeyPath string) error {
 	sign, err := base64.StdEncoding.DecodeString(base64Sign)
 	if err != nil {
-		return false
+		return err
 	}
 
 	publicKey, err := loadPublicKeyFromPath(rasPublicKeyPath)
 	if err != nil {
-		return false
+		return err
 	}
 
 	hashed := sha256.Sum256([]byte(data))
-	err = rsa.VerifyPKCS1v15(publicKey, crypto.SHA256, hashed[:], sign)
-	return err == nil
+	return rsa.VerifyPKCS1v15(publicKey, crypto.SHA256, hashed[:], sign)
 }
 
-func VerifySignWithRSAPSS(data string, base64Sign string, rasPublicKeyPath string) bool {
+func VerifySignWithRSAPSS(data string, base64Sign string, rasPublicKeyPath string) error {
 	sign, err := base64.StdEncoding.DecodeString(base64Sign)
 	if err != nil {
-		return false
+		return err
 	}
 
 	publicKey, err := loadPublicKeyFromPath(rasPublicKeyPath)
 	if err != nil {
-		return false
+		return err
 	}
 
 	hashed := sha256.Sum256([]byte(data))
 	err = rsa.VerifyPSS(publicKey, crypto.SHA256, hashed[:], sign, &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthEqualsHash, Hash: crypto.SHA256})
-	return err == nil
+	return err
 }
 
 func loadPublicKeyFromPath(path string) (*rsa.PublicKey, error) {

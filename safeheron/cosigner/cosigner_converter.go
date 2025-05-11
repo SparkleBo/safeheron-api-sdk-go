@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -63,16 +64,21 @@ func (c *CoSignerConverter) RequestConvert(d CoSignerCallBack) (string, error) {
 		"bizContent": d.BizContent,
 	}
 	// Verify sign
-	verifyRet := utils.VerifySignWithRSA(serializeParams(responseStringMap), d.Sig, c.Config.getCoSignerPubKey())
-	if !verifyRet {
-		return "", errors.New("CoSignerCallBack signature verification failed")
+	err := utils.VerifySignWithRSA(serializeParams(responseStringMap), d.Sig, c.Config.getCoSignerPubKey())
+	if err != nil {
+		return "", fmt.Errorf("coSignerCallBack signature verification failed", err.Error())
 	}
+
 	// Use your RSA private key to decrypt response's aesKey and aesIv
 	var plaintext []byte
 	if d.RsaType == utils.ECB_OAEP {
-		plaintext, _ = utils.DecryptWithOAEP(d.Key, c.Config.getApprovalCallbackServicePrivateKey())
+		plaintext, err = utils.DecryptWithOAEP(d.Key, c.Config.getApprovalCallbackServicePrivateKey())
 	} else {
-		plaintext, _ = utils.DecryptWithRSA(d.Key, c.Config.getApprovalCallbackServicePrivateKey())
+		plaintext, err = utils.DecryptWithRSA(d.Key, c.Config.getApprovalCallbackServicePrivateKey())
+	}
+
+	if err != nil {
+		return "", err
 	}
 	resAesKey := plaintext[:32]
 	resAesIv := plaintext[32:]
@@ -94,8 +100,8 @@ func (c *CoSignerConverter) RequestV3Convert(d CoSignerCallBackV3) (string, erro
 		"bizContent": d.BizContent,
 	}
 	// Verify sign
-	verifyRet := utils.VerifySignWithRSAPSS(serializeParams(responseStringMap), d.Sig, c.Config.getCoSignerPubKey())
-	if !verifyRet {
+	err := utils.VerifySignWithRSAPSS(serializeParams(responseStringMap), d.Sig, c.Config.getCoSignerPubKey())
+	if err != nil {
 		return "", errors.New("CoSignerCallBack signature verification failed")
 	}
 	callBackContent, _ := base64.StdEncoding.DecodeString(d.BizContent)
