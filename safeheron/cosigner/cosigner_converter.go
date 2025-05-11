@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -102,7 +101,7 @@ func (c *CoSignerConverter) RequestV3Convert(d CoSignerCallBackV3) (string, erro
 	// Verify sign
 	err := utils.VerifySignWithRSAPSS(serializeParams(responseStringMap), d.Sig, c.Config.getCoSignerPubKey())
 	if err != nil {
-		return "", errors.New("CoSignerCallBack signature verification failed")
+		return "", fmt.Errorf("coSignerCallBack signature verification failed %s", err.Error())
 	}
 	callBackContent, _ := base64.StdEncoding.DecodeString(d.BizContent)
 	return string(callBackContent), nil
